@@ -1,6 +1,4 @@
-#
-
-from typing import Optional, Dict, Set
+from typing import Optional, Dict, List
 import requests
 import json
 from pathlib import Path
@@ -9,7 +7,7 @@ from dataclasses import dataclass
 from requests.exceptions import ConnectTimeout, ConnectionError
 from json.decoder import JSONDecodeError
 from urllib.parse import urlsplit
-
+from collections import Counter
 from requests.exceptions import ReadTimeout
 
 
@@ -134,13 +132,6 @@ def parse_instance_from_uri(toot_uri: str):
     return Instance(uri=parts.netloc, protocol=parts.scheme)
 
 
-class EnhancedJSONEncoder(json.JSONEncoder):
-    def default(self, o):
-        if dataclasses.is_dataclass(o):
-            return dataclasses.asdict(o)
-        return super().default(o)
-
-
 def fetch_neighborhood(instance: Instance):
     """
     Explore the neighborhood of the instance.
@@ -148,33 +139,37 @@ def fetch_neighborhood(instance: Instance):
     """
 
     def determine_neighbors_from_toots(toots: list, except_instance: Instance):
-        direct_neighbors = set(parse_instance_from_uri(toot["uri"]) for toot in toots)
-        if except_instance in direct_neighbors:
-            direct_neighbors.remove(except_instance)
+        direct_neighbors = [parse_instance_from_uri(toot["uri"]) for toot in toots]
+        direct_neighbors = [
+            neighbor for neighbor in direct_neighbors if neighbor != except_instance
+        ]
         return direct_neighbors
 
     # map from instance -> list of neighbor instances
-    neighbors: Dict[Instance, Set[Instance]] = {}
+    graph: Dict[Instance, List[Instance]] = {}
 
     toots = fetch_timeline(instance)
 
-    neighbors[instance] = determine_neighbors_from_toots(
-        toots, except_instance=instance
-    )
-    for direct_neighbor in neighbors[instance]:
+    graph[instance] = determine_neighbors_from_toots(toots, except_instance=instance)
+    for direct_neighbor in set(graph[instance]):
         toots = fetch_timeline(direct_neighbor)
-        neighbors[direct_neighbor] = determine_neighbors_from_toots(
+        graph[direct_neighbor] = determine_neighbors_from_toots(
             toots, except_instance=direct_neighbor
         )
 
     # Turn instances into strings
-    neighbors = {
+    graph = {
         str(instance): [str(n) for n in instance_neighbors]
-        for instance, instance_neighbors in neighbors.items()
+        for instance, instance_neighbors in graph.items()
+    }
+
+    # Turn list of neighbors into counter
+    graph = {
+        instance: dict(Counter(neighbors)) for instance, neighbors in graph.items()
     }
 
     with open("neighborhood.json", "w") as fp:
-        json.dump(neighbors, fp)
+        json.dump(graph, fp)
 
 
 def main():

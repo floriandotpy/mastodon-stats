@@ -2,13 +2,15 @@
 <meta charset="utf-8" />
 <style>
   body {
-    font-family: "Architects Daughter", cursive;
+    font-family: "IBM Plex Sans", sans-serif;
   }
 </style>
-<svg width="960" height="600"></svg>
+<svg width="1200" height="1200"></svg>
 <script src="https://d3js.org/d3.v4.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link
-  href="https://fonts.googleapis.com/css?family=Architects+Daughter"
+  href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans&display=swap"
   rel="stylesheet"
 />
 <script>
@@ -24,7 +26,7 @@
         return d.id;
       })
     )
-    .force("charge", d3.forceManyBody().strength(-400))
+    .force("charge", d3.forceManyBody().strength(-120))
     .force("center", d3.forceCenter(width / 2, height / 2));
 
   d3.json("data.json", function (error, graph) {
@@ -109,8 +111,8 @@
         .attr("y", function (d) {
           return d.y;
         })
-        .style("font-size", "10px")
-        .style("fill", "#4393c3");
+        .style("font-size", "12px")
+        .style("fill", "#000000");
     }
   });
 
