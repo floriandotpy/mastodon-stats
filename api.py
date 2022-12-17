@@ -25,6 +25,7 @@ class Instance:
 
 
 def instance_info(instance: Instance):
+    print("Fetching instance info...")
     url = f"{instance.url}/api/v1/instance"  # DEPRECATED end point. not sure what the replacement is
     response = requests.get(url, timeout=5)
     data = json.loads(response.text)
@@ -95,6 +96,8 @@ def fetch_timeline(
     if cache_file.exists() and not force_refresh:
         with cache_file.open() as fp:
             return json.load(fp)
+
+    print("Fetching timeline")
 
     toots = []
     last_id = None
