@@ -5,13 +5,13 @@ Visualizing Mastodon instances
 
 import streamlit as st
 import pandas as pd
+from streamlit_agraph import agraph, Node, Edge, Config
 
 from api import Instance, fetch_timeline
 from api import instance_info
+from neighboorhood_to_web import convert_for_web
 
-# df = pd.DataFrame({"first column": [1, 2, 3, 4], "second column": [10, 20, 30, 40]})
-
-# df
+st.set_page_config(layout="wide")
 
 instance = Instance("sigmoid.social")
 
@@ -120,8 +120,28 @@ st.write(
     """
     ## Who is on the instance?
     TODO
-
-    ## What does the neighborhood of the instance look like?
-    TODO
     """
 )
+
+st.write("## What does the neighborhood of the instance look like?")
+
+
+# TODO: actually fetch the neighboorhood dynamically for current `instance`.
+graph_data = convert_for_web()
+size_fn = lambda node: 25 if node["name"] == instance.uri else 10
+nodes = [
+    Node(id=node["id"], label=node["name"], size=size_fn(node))
+    for node in graph_data["nodes"]
+]
+edges = [
+    Edge(source=edge["source_id"], target=edge["target_id"])
+    for edge in graph_data["links"]
+]
+
+config = Config(
+    width="80%",
+    height=800,
+    # **kwargs
+)
+
+agraph(nodes=nodes, edges=edges, config=config)

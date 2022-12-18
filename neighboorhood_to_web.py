@@ -36,10 +36,11 @@ def convert_for_web(min_connections: int = 10):
             continue
         data["nodes"].append({"id": idx, "name": instance})
 
-    print(data)
-    with open("web/data.json", "w") as fp:
-        json.dump(data, fp)
+    return data
 
 
 if __name__ == "__main__":
-    convert_for_web()
+    data = convert_for_web()
+    print(data)
+    with open("web/data.json", "w") as fp:
+        json.dump(data, fp)
